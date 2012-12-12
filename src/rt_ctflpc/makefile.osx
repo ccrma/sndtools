@@ -1,0 +1,22 @@
+TARGET=rt_ctflpc
+OBJS=lpc.o rt_ctflpc.o RtAudio.o Thread.o Stk.o chuck_fft.o dct.o
+
+CC=gcc
+CPP=g++
+INCLUDES=
+CFLAGS=-D__MACOSX_CORE__ $(INCLUDES) -O3 -g -c
+LIBS=-framework coreaudio -framework coremidi -framework corefoundation -framework OpenGL -framework GLUT -framework foundation -framework appkit -lsndfile
+
+rt_ctflpc: $(OBJS)
+	$(CPP) -o $@ $(OBJS) $(LIBS) -lsndfile
+
+.o: $*.h
+
+.c.o: $*.h $*.c
+	$(CC) $(CFLAGS) $*.c
+
+.cpp.o: $*.h $*.cpp
+	$(CC) $(CFLAGS) $*.cpp
+
+clean: 
+	rm -f rt_ctflpc *~ *.o

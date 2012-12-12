@@ -1,0 +1,22 @@
+TARGET=rt_pv
+OBJS=pvc.o rt_pvc.o RtAudio.o Thread.o Stk.o chuck_fft.o
+
+CC=gcc
+CPP=g++
+INCLUDES=-I/usr/include/directx/
+CFLAGS=-D__WINDOWS_DS__ -D__WINDOWS_PTHREAD__ $(INCLUDES) -O3 -g -c
+LIBS=-ldsound -ldxguid -lwinmm -lpthread -lopengl32 -lglu32 -lglut32
+
+rt_pvc: $(OBJS)
+	$(CPP) -o $@ $(OBJS) $(LIBS)
+
+.o: $*.h
+
+.c.o: $*.h $*.c
+	$(CC) $(CFLAGS) $*.c
+
+.cpp.o: $*.h $*.cpp
+	$(CC) $(CFLAGS) $*.cpp
+
+clean: 
+	rm -f rt_pvc.exe *~ *.o

@@ -1,0 +1,22 @@
+TARGET=rt_ctflpc
+OBJS=lpc.o rt_ctflpc.o RtAudio.o Thread.o Stk.o chuck_fft.o midiio_alsa.o
+
+CC=gcc
+CPP=g++
+INCLUDES=
+CFLAGS=-D__LINUX_ALSA__ $(INCLUDES) -O3 -g -c
+LIBS=-lasound -L/usr/X11R6/lib -lGL -lGLU -lglut -lX11 -lXi -lXext -lXmu -lm
+
+rt_ctflpc: $(OBJS)
+	$(CPP) -o $@ $(OBJS) $(LIBS)
+
+.o: $*.h
+
+.c.o: $*.h $*.c
+	$(CC) $(CFLAGS) $*.c
+
+.cpp.o: $*.h $*.cpp
+	$(CC) $(CFLAGS) $*.cpp
+
+clean: 
+	rm -f rt_ctflpc *~ *.o

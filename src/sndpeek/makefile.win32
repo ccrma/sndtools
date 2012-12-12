@@ -1,0 +1,74 @@
+CC=gcc
+CPP=g++
+INCLUDES=-I../marsyas/ -I/usr/include/directx/
+MARSYAS_DIR=../marsyas/
+CFLAGS=-D__WINDOWS_DS__ -D__WINDOWS_PTHREAD__ -D__LITTLE_ENDIAN__ $(INCLUDES) -O3 -c
+LIBS=-ldsound -ldxguid -lwinmm -lpthread -lopengl32 -lglu32 -lglut32
+
+TARGET=sndpeek
+OBJS=chuck_fft.o RtAudio.o Thread.o sndpeek.o Stk.o util_sndfile.o \
+	Centroid.o DownSampler.o Flux.o LPC.o MFCC.o RMS.o Rolloff.o \
+	System.o fvec.o AutoCorrelation.o Communicator.o Hamming.o \
+	MagFFT.o NormRMS.o MarSignal.o fmatrix.o
+
+sndpeek: $(OBJS)
+	$(CPP) -o $@ $(OBJS) $(LIBS)
+
+Centroid.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+DownSampler.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+Flux.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+LPC.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+MFCC.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+RMS.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+Rolloff.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+System.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+fvec.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+AutoCorrelation.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+Communicator.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+Hamming.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+MagFFT.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+NormRMS.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+MarSignal.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+fmatrix.o:
+	$(CC) $(CFLAGS) $(MARSYAS_DIR)$*.cpp
+
+.o: $*.h
+
+.c.o: $*.h $*.c
+	$(CC) $(CFLAGS) $*.c
+
+.cpp.o: $*.h $*.cpp
+	$(CC) $(CFLAGS) $*.cpp
+
+clean: 
+	rm -f sndpeek.exe *~ *.o

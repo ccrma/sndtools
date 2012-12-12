@@ -1,0 +1,22 @@
+TARGET=rt_lpc
+OBJS=lpc.o rt_lpc.o RtAudio.o Thread.o Stk.o chuck_fft.o midiio_osx.o
+
+CC=gcc
+CPP=g++
+INCLUDES=
+CFLAGS=-D__MACOSX_CORE__ $(INCLUDES) -O3 -c
+LIBS=-framework coreaudio -framework coremidi -framework corefoundation -framework OpenGL -framework GLUT -framework foundation -framework appkit
+
+rt_lpc: $(OBJS)
+	$(CPP) -o $@ $(OBJS) $(LIBS)
+
+.o: $*.h
+
+.c.o: $*.h $*.c
+	$(CC) $(CFLAGS) $*.c
+
+.cpp.o: $*.h $*.cpp
+	$(CC) $(CFLAGS) $*.cpp
+
+clean: 
+	rm -f rt_lpc *~ *.o
