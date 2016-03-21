@@ -96,7 +96,7 @@ SAMPLE g_audio_buffer[PVC_BUFFER_SIZE];
 SAMPLE g_another_buffer[PVC_BUFFER_SIZE];
 GLboolean g_ready = FALSE;
 GLfloat g_window[PVC_BUFFER_SIZE];
-int g_buffer_size = PVC_BUFFER_SIZE;
+unsigned int g_buffer_size = PVC_BUFFER_SIZE;
 RtAudio * g_audio = NULL;
 Mutex g_mutex;
 #if defined(__LINUX_ALSA__) || defined(__LINUX_OSS__)
@@ -264,14 +264,16 @@ int main( int argc, char ** argv )
 // name: cb()
 // desc: audio callback
 //-----------------------------------------------------------------------------
-int cb( char * buffer, int buffer_size, void * user_data )
+int cb( void *outputBuffer, void *inputBuffer,
+        unsigned int nFrames, double streamTime,
+        RtAudioStreamStatus status, void *userData)
 {
     // g_mutex.lock();
 
     // copy in and out
-    memcpy( g_audio_buffer, buffer, buffer_size * sizeof(SAMPLE) );
-    if( !g_ready ) memcpy( buffer, g_another_buffer, buffer_size * sizeof(SAMPLE) );
-    else memset( buffer, 0, buffer_size * sizeof(SAMPLE) );
+    memcpy( g_audio_buffer, inputBuffer, nFrames * sizeof(SAMPLE) );
+    if( !g_ready ) memcpy( outputBuffer, g_another_buffer, nFrames * sizeof(SAMPLE) );
+    else memset( outputBuffer, 0, nFrames * sizeof(SAMPLE) );
 
     g_ready = TRUE;
     // g_mutex.unlock();
@@ -293,29 +295,36 @@ bool initialize_audio( )
     try
     {
         // open the audio device for capture and playback
-        g_audio = new RtAudio( 0, g_sndout, 0, g_sndin, RTAUDIO_FLOAT32,
-            g_srate, &g_buffer_size, 2 );
+        g_audio = new RtAudio();
+        
+        RtAudio::StreamParameters inputParameters;
+        inputParameters.deviceId = g_audio->getDefaultInputDevice();
+        inputParameters.nChannels = g_sndin;
+        
+        RtAudio::StreamParameters outputParameters;
+        outputParameters.deviceId = g_audio->getDefaultOutputDevice();
+        outputParameters.nChannels = g_sndout;
+        
+        g_audio->openStream( &outputParameters, &inputParameters,
+            RTAUDIO_FLOAT32, g_srate, &g_buffer_size, cb, NULL);
+
+        // do the pvc
+        g_pvc = pv_create( g_window_size, /*1024*/ PVC_BUFFER_SIZE, 2048 );
+        pv_set_window( g_pvc, PV_HANNING );
+
+        // start the audio
+        g_audio->startStream( );
+
+        // make the window
+        hanning( g_window, g_buffer_size );
     }
-    catch( StkError & e )
+    catch( RtAudioError & e )
     {
         // exception
-        fprintf( stderr, "%s\n", e.getMessage() );
+        fprintf( stderr, "%s\n", e.getMessage().c_str() );
         fprintf( stderr, "error: cannot open audio device for capture/playback...\n" );
         return false;
     }
-
-    // set the audio callback
-    g_audio->setStreamCallback( cb, NULL );
-
-    // do the pvc
-    g_pvc = pv_create( g_window_size, /*1024*/ PVC_BUFFER_SIZE, 2048 );
-    pv_set_window( g_pvc, PV_HANNING );
-
-    // start the audio
-    g_audio->startStream( );
-
-    // make the window
-    hanning( g_window, g_buffer_size );
 
     return true;
 }
