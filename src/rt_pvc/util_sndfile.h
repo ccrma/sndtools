@@ -1,25 +1,25 @@
 /*----------------------------------------------------------------------------
-    ChucK Concurrent, On-the-fly Audio Programming Language
-      Compiler and Virtual Machine
+  ChucK Concurrent, On-the-fly Audio Programming Language
+    Compiler and Virtual Machine
 
-    Copyright (c) 2004 Ge Wang and Perry R. Cook.  All rights reserved.
-      http://chuck.cs.princeton.edu/
-      http://soundlab.cs.princeton.edu/
+  Copyright (c) 2004 Ge Wang and Perry R. Cook.  All rights reserved.
+    http://chuck.stanford.edu/
+    http://chuck.cs.princeton.edu/
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-    U.S.A.
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  U.S.A.
 -----------------------------------------------------------------------------*/
 
 /*
@@ -49,6 +49,9 @@
 //          Ari Lazier (alazier@alumni.princeton.edu)
 // libsndfile: Erik de Castro Lopo (erikd@mega-nerd.com)
 //-----------------------------------------------------------------------------
+#ifndef __UTIL_SNDFILE_H__
+#define __UTIL_SNDFILE_H__
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -113,12 +116,19 @@
 #define SIZEOF_VOIDP 4
 #define STDC_HEADERS 1
 
-#define SNDFILE_VERSION "1.0.10"
+#define VERSION "1.0.10"
 
 #ifdef __MACOSX_CORE__
 #define CPU_CLIPS_POSITIVE 1
+#ifdef __LITTLE_ENDIAN__
+#define CPU_IS_BIG_ENDIAN 0
+#define CPU_IS_LITTLE_ENDIAN 1
+#define HAVE_LRINTF 1
+#define HAVE_LRINT 1
+#else
 #define CPU_IS_BIG_ENDIAN 1
 #define CPU_IS_LITTLE_ENDIAN 0
+#endif
 #define HAVE_PREAD 1
 #define HAVE_PWRITE 1
 #define OS_IS_MACOSX 1
@@ -156,7 +166,7 @@
 #define HAVE_ALSA_ASOUNDLIB_H 
 #endif
 
-#if defined(__LINUX_ALSA__) || defined(__LINUX_OSS__) || defined(__LINUX_JACK__)
+#if defined(__PLATFORM_LINUX__)
 #define CPU_CLIPS_POSITIVE 0
 #define CPU_IS_BIG_ENDIAN 0
 #define CPU_IS_LITTLE_ENDIAN 1
@@ -1139,6 +1149,13 @@ int psf_ferror (SF_PRIVATE *psf) ;
 */
 
 int     aiff_open   (SF_PRIVATE *psf) ;
+#if defined(TARGET_OS_IPHONE) || defined(TARGET_IPHONE_SIMULATOR)
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+// fix for au_open/au_close namespace conflict on iOS
+#define au_open sf_au_open
+#define au_close sf_au_close
+#endif // TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+#endif // defined(TARGET_OS_IPHONE) || defined(TARGET_IPHONE_SIMULATOR)
 int     au_open     (SF_PRIVATE *psf) ;
 int     au_nh_open  (SF_PRIVATE *psf) ; /* Headerless version of AU. */
 int     avr_open    (SF_PRIVATE *psf) ;
@@ -2460,7 +2477,7 @@ extern word gsm_FAC [8] ;
     #define __USE_ISOC99    1
 
 
-#elif ( defined (WIN32) || defined (_WIN32) || defined(__PLATFORM_WIN32__) )
+#elif ( defined (WIN32) || defined (_WIN32) || defined(__PLATFORM_WIN32__) || defined(__LITTLE_ENDIAN__) )
 
     #undef      HAVE_LRINT_REPLACEMENT
     #define     HAVE_LRINT_REPLACEMENT  1
@@ -2470,6 +2487,8 @@ extern word gsm_FAC [8] ;
     **  Therefore implement inline versions of these functions here.
     */
 
+// ge: some versions of windows have them
+#ifndef __WINDOWS_MODERN__
     __inline long int
     lrint (double flt)
     {   int intgr ;
@@ -2493,6 +2512,7 @@ extern word gsm_FAC [8] ;
 
         return intgr ;
     }
+#endif
 
 #elif (defined (__MWERKS__) && defined (macintosh))
 
@@ -2682,3 +2702,5 @@ extern word gsm_FAC [8] ;
 **
 ** arch-tag: 253aea6d-6299-46fd-8d06-bc5f6224c8fe
 */
+
+#endif

@@ -50,6 +50,7 @@
 // libsndfile: Erik de Castro Lopo (erikd@mega-nerd.com)
 //-----------------------------------------------------------------------------
 #include "util_sndfile.h"
+#include <math.h>
 
 /*
  * Copyright 1992 by Jutta Degener and Carsten Bormann, Technische
@@ -7929,7 +7930,10 @@ psf_log_syserr (SF_PRIVATE *psf, int error)
 #include <io.h>
 
 #ifndef HAVE_SSIZE_T
-typedef long ssize_t ;
+    // ge: this is needed in some/earlier versions of windows
+    #ifndef __WINDOWS_MODERN__
+    typedef long ssize_t ;
+    #endif
 #endif
 
 /* Win32 */ static void
@@ -8213,7 +8217,12 @@ psf_fclose (SF_PRIVATE *psf)
 {	int retval = 0 ;
 
 	if (psf->do_not_close_descriptor)
-	{	(HANDLE) psf->filedes = INVALID_HANDLE_VALUE ;
+	{
+// ge: needed for some/earlier versions of windows
+#ifndef __WINDOWS_MODERN__
+        (HANDLE)
+#endif
+        psf->filedes = INVALID_HANDLE_VALUE ;
 		return 0 ;
 		} ;
 
@@ -16338,7 +16347,7 @@ mat5_write_header (SF_PRIVATE *psf, int calc_length)
 	psf->headindex = 0 ;
 	psf_fseek (psf, 0, SEEK_SET) ;
 
-	psf_binheader_writef (psf, "S", "MATLAB 5.0 MAT-file, written by " PACKAGE "-" SNDFILE_VERSION ", ") ;
+	psf_binheader_writef (psf, "S", "MATLAB 5.0 MAT-file, written by " PACKAGE "-" VERSION ", ") ;
 	psf_get_date_str ((char*) psf->buffer, sizeof (psf->buffer)) ;
 	psf_binheader_writef (psf, "jS", -1, psf->buffer) ;
 
@@ -25176,7 +25185,7 @@ sf_error (SNDFILE *sndfile)
 {	SF_PRIVATE	*psf ;
 
 	if (! sndfile)
-	{	if (sf_error != 0)
+	{	if (&sf_error != 0) // ge: added &
 			return 1 ;
 		return 0 ;
 		} ;
@@ -27245,8 +27254,8 @@ static void hexdump (void *data, int len) ;
 
 int
 psf_store_string (SF_PRIVATE *psf, int str_type, const char *str)
-{	static char lsf_name [] = PACKAGE "-" SNDFILE_VERSION ;
-	static char bracket_name [] = " (" PACKAGE "-" SNDFILE_VERSION ")" ;
+{	static char lsf_name [] = PACKAGE "-" VERSION ;
+	static char bracket_name [] = " (" PACKAGE "-" VERSION ")" ;
 	int		k, str_len, len_remaining, str_flags ;
 
 	if (str == NULL)
@@ -33227,7 +33236,7 @@ xi_open	(SF_PRIVATE *psf)
 
 		/* Set up default instrument and software name. */
 		memcpy (pxi->filename, "Default Name            ", sizeof (pxi->filename)) ;
-		memcpy (pxi->software, PACKAGE "-" SNDFILE_VERSION "               ", sizeof (pxi->software)) ;
+		memcpy (pxi->software, PACKAGE "-" VERSION "               ", sizeof (pxi->software)) ;
 
 		memset (pxi->sample_name, 0, sizeof (pxi->sample_name)) ;
 		LSF_SNPRINTF (pxi->sample_name, sizeof (pxi->sample_name), "%s", "Sample #1") ;
